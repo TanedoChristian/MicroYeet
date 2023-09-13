@@ -1,0 +1,51 @@
+version: "3.4"
+services:
+  command-api:
+    build:
+      context: ./CommandService
+      dockerfile: Dockerfile
+    ports:
+      - 9001:80
+    networks:
+      - mynetwork
+
+  platform-api:
+    build:
+      context: ./PlatformService
+      dockerfile: Dockerfile
+    ports:
+      - 9000:80
+    depends_on:
+      - database
+    networks:
+      - mynetwork
+
+  database: # PostgreSQL v12 service
+    image: postgres:12
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: microyt
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf  # Mount the nginx configuration file
+    networks:
+      - mynetwork
+
+volumes:
+  postgres_data:
+
+networks:
+  mynetwork:
+    driver: bridge
